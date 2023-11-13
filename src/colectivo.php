@@ -5,16 +5,12 @@ namespace TrabajoSube;
 use TrabajoSube\Tiempo;
 
 class Colectivo {
-    private $tarifaBasica = 120;
-    private $saldoNegativo = -211.84;
-    private $lineaColectivo;
+    public $tarifaBasica = 120;
+    public $saldoNegativo = -211.84;
+    public $lineaColectivo;
 
     public function __construct($lineaColectivo) {
         $this->lineaColectivo = $lineaColectivo;
-    }
-
-    public function getLinea() {
-        return $this->LineaColectivo;
     }
 
     public function pagarCon(Tarjeta $tarjeta) {

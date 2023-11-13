@@ -3,43 +3,21 @@
 namespace TrabajoSube;
 
 class Tarjeta {
-    private $id;
-    private $saldo;
-    private $saldoSinAcreditar;
-    private $ultimoViaje;
-    private $viajesHoy;
-    private $viajesRealizados = 1;
+    public $id;
+    public $saldo;
+    public $saldoSinAcreditar;
+    public $ultimoViaje;
+    public $viajesHoy;
+    public $viajesRealizados = 1;
     protected $tipoTarjeta = "Sin Franquicia";
-    private $limiteSaldo = 6600;
-    private $cargasAceptadas = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000, 2500, 3000, 3500, 4000];
+    public $limiteSaldo = 6600;
+    public $cargasAceptadas = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000, 2500, 3000, 3500, 4000];
 
-    public function __construct($saldoInicial) {
+    public function __construct($saldo) {
         $this->id = uniqid();
-        if (in_array($saldoInicial, $this->cargasAceptadas)) {
+        if (in_array($saldo, $this->cargasAceptadas)) {
             $this->saldo = $saldoInicial;
-        } else {
-            throw new Exception("Monto de carga no válido");
         }
-    }
-
-    public function getId() {
-        return $this->id;
-    }
-
-    public function getSaldo() {
-        return $this->saldo;
-    }
-
-    public function getUltimoViaje() {
-        return $this->ultimoViaje;
-    }
-
-    public function getSaldoSinAcreditar() {
-        return $this->saldoSinAcreditar;
-    }
-
-    public function getViajesHoy() {
-        return $this->viajesHoy;
     }
 
     public function setUltimoViaje() {
@@ -61,20 +39,31 @@ class Tarjeta {
 
     public function cargarSaldo($monto) {
         if (in_array($monto, $this->cargasAceptadas)) {
-            $this->saldoSinAcreditar += $monto;
+            if(($this->saldo + $monto) <= $this->limiteSaldo) {
+                $this->saldo += $monto;
+                echo "Saldo acreditado correctamente. Nuevo saldo: " . $this->saldo;
+            }
+            else {
+                $this->saldoSinAcreditar = $this->saldo + $monto - $this->limiteSaldo;
+                $this->saldo = $this->limiteSaldo;
+                echo "Saldo acreditado correctamente. Nuevo saldo: " . $this->saldo;
+                echo "Saldo sin acreditar: " . $this->getSaldoSinAcreditar;
+            }
+        }
+        else {
+         echo "Error al intentar acreditar saldo. Saldo actual: " . $this->saldo;
+         return false;
         }
     }
 
     public function acreditarSaldo(){
         if ($this->saldoSinAcreditar > 0) {
-            if ($this->saldo + $this->saldoSinAcreditar > $this->limiteSaldo) {
-                return $this->limiteSaldo - $this->saldo;
-                $this->saldo = $this->limiteSaldo;
+            if ($this->saldo + $this->saldoSinAcreditar >= $this->limiteSaldo) {
                 $this->saldoSinAcreditar = $this->saldo + $this->saldoSinAcreditar - $this->limiteSaldo;
+                $this->saldo = $this->limiteSaldo;
             }
             else {
                 $this->saldo + $this->saldoSinAcreditar;
-                return $this->getSaldoSinAcreditar;
                 $this->saldoSinAcreditar = 0;
             }
         }
@@ -101,43 +90,9 @@ class Tarjeta {
 }
 
 class FranquiciaParcial extends Tarjeta {
-    public function __construct($saldoInicial) {
-        parent::__construct($saldoInicial);
-        $this->tipoTarjeta = "Franquicia Parcial";
-    }
-
-    public function multiplicadorPrecio() {
-        if (date('N') >= 1 && date('N') <= 5 && $horaActual >= 6 && $horaActual < 22) {
-            return 0.5;
-        }
-        else{
-            return 1;
-        }
-    }
+    public $tipoTarjeta = "Franquicia Parcial"
 }
 
 class FranquiciaCompleta extends Tarjeta {
-    public function __construct($saldoInicial) {
-        parent::__construct($saldoInicial);
-        $this->tipoTarjeta = "Franquicia Completa";
-    }
-
-    public function multiplicadorPrecio() {
-    if (date('N') >= 1 && date('N') <= 5 && $horaActual >= 6 && $horaActual < 22) {
-        if (floor(time()/86400) == floor($tarjeta->getUltimoViaje()/86400) && $tarjeta->getviajesHoy >= 2) {
-            return 1;
-        }
-        if(floor(time()/86400) > floor($tarjeta->getUltimoViaje()/86400))
-        {
-            resetViajesHoy();
-            return 0;
-        }
-        else {
-            return 0;
-}
-        }
-        else{
-            return 1;
-        }
-    }
+    public $tipoTarjeta = "Franquicia Completa"
 }
