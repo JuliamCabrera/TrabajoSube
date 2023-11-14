@@ -14,9 +14,9 @@ class Boleto {
     public $tarjetaID;
     public $saldoNegativoCancelado;
 
-    public function __construct($monto, $fecha, $tipoTarjeta, $lineaColectivo, $totalAbonado, $saldo, $tarjetaID, $saldoNegativoCancelado) {
+    public function __construct($monto, $tipoTarjeta, $lineaColectivo, $totalAbonado, $saldo, $tarjetaID, $saldoNegativoCancelado) {
         $this->monto = $monto;
-        $this->fecha = $fecha;
+        $this->fecha = date('l jS \of F Y h:i:s A', time()-10800);
         $this->tipoTarjeta = $tipoTarjeta;
         $this->lineaColectivo = $lineaColectivo;
         $this->totalAbonado = $totalAbonado;
