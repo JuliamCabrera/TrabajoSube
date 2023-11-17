@@ -95,6 +95,40 @@ class ColectivoTest extends TestCase {
         $this->assertEquals($tarjetaJubilados->saldo, 3630);
     }
 
+    public function testTransbordos() {
+
+        $colectivo1 = new colectivo(131);
+        $colectivo2 = new colectivo(132);
+        $tarjeta = new tarjeta;
+
+        $tarjeta->cargarSaldo(4000);
+        $tarjeta->acreditarSaldo();
+
+        // Transbordar correctamente.
+        $colectivo1->pagarCon($tarjeta, 43200);
+        $this->assertEquals($tarjeta->saldo, 3815);
+        $this->assertEquals($colectivo2->checktarjeta($tarjeta, 43200),0);
+        $colectivo2->pagarCon($tarjeta, 43200);
+        $this->assertEquals($tarjeta->saldo, 3815);
+
+        // Intentar transbordar cuando ya pasó una hora desde el ultimo viaje en colectivo.
+        $this->assertEquals($colectivo1->checktarjeta($tarjeta, 46800),1);
+        $colectivo1->pagarCon($tarjeta, 46800);
+        $this->assertEquals($tarjeta->saldo, 3630);
+
+        // Intentar transbordar entre colectivos de una misma linea.
+        $this->assertEquals($colectivo1->checktarjeta($tarjeta, 46800),1);
+        $colectivo1->pagarCon($tarjeta, 46800);
+        $this->assertEquals($tarjeta->saldo, 3445);
+
+        //Intentar transbordar fuera de horario.
+        $colectivo1->pagarCon($tarjeta, 86400);
+        $this->assertEquals($tarjeta->saldo, 3260);
+        $this->assertEquals($colectivo2->checktarjeta($tarjeta, 86400),1);
+        $colectivo2->pagarCon($tarjeta, 86400);
+        $this->assertEquals($tarjeta->saldo, 3075);
+    }
+
     public function test5Min() {
 
         /* En esta función se va a testear el funcionamiento de check5Min. */

@@ -28,6 +28,7 @@ class Colectivo {
             $tarjeta->viajesHoy += 1;
             $tarjeta->viajesMes += 1;
             $tarjeta->ultimoViaje = $tiempo;
+            $tarjeta->ultimaLinea = $this->lineaColectivo;
 
             if ($saldoPrevio < 0 && $tarjeta->saldo > 0) {
                 $saldoNegativoCancelado = true;
@@ -47,8 +48,12 @@ class Colectivo {
 
         $descuentoFranquicia = 1;
         $viajeDiarioDisponible = $this->checkViajesHoy($tarjeta, $tiempo);
+        $transbordoDisponible = $this->checkTransbordos($tarjeta, $tiempo);
 
-        if($this->checkHorarios($tiempo)) {
+        if($transbordoDisponible) {
+            $descuentoFranquicia = 0;
+        }
+        elseif($this->checkHorarios($tiempo)) {
 
             if($tarjeta->tipoFranquicia == "Franquicia Parcial" && $this->check5Min($tarjeta, $tiempo)) {
                 $descuentoFranquicia = 0.5;
@@ -67,6 +72,35 @@ class Colectivo {
         $diaSemana = date('N', $tiempo);
         $hora = date('H', $tiempo);
         if($diaSemana >= 1 && $diaSemana <= 5 && $hora >= 6 && $hora <= 22) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public function checkTransbordos ($tarjeta, $tiempo) {
+
+        $horariosTransbordo;
+        $checkHora;
+
+        $diaSemana = date('N', $tiempo);
+        $hora = date('H', $tiempo);
+        if($diaSemana >= 1 && $diaSemana <= 6 && $hora >= 7 && $hora <= 22) {
+            $horariosTransbordo = true;
+        }
+        else {
+            return false;
+        }
+
+        if(($tiempo - $tarjeta->ultimoViaje) < 3600) {
+            $checkHora = true;
+        }
+        else {
+            return false;
+        }
+
+        if ($horariosTransbordo && $checkHora && $tarjeta->ultimaLinea != $this->lineaColectivo && $tarjeta->ultimaLinea != null) {
             return true;
         }
         else {
