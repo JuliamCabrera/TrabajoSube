@@ -4,6 +4,7 @@ namespace TrabajoSube;
 
 use PHPUnit\Framework\TestCase;
 use TrabajoSube\colectivo;
+use TrabajoSube\ColectivoInterUrbano;
 use TrabajoSube\tarjeta;
 use TrabajoSube\TarjetaMBE;
 use TrabajoSube\TarjetaJubilados;
@@ -12,7 +13,47 @@ use TrabajoSube\Tiempo;
 
 class ColectivoTest extends TestCase {
 
+    public function testPagarCon() {
+
+        // En esta función se va a testear el funcionamiento de pagarCon.
+
+        $colectivo = new colectivo(132);
+        $tarjeta = new tarjeta;
+
+        $tarjeta->cargarSaldo(200);
+        $tarjeta->acreditarSaldo();
+
+        $colectivo->pagarCon($tarjeta, 0);
+        $this->assertEquals($tarjeta->saldo, 15);
+        $colectivo->pagarCon($tarjeta, 0);
+        $this->assertEquals($tarjeta->saldo, -170);
+        $tarjeta->cargarSaldo(500);
+        $this->assertEquals($tarjeta->saldo, -170);
+        $colectivo->pagarCon($tarjeta, 0);
+        $this->assertEquals($tarjeta->saldo, 145);
+
+        $colectivo->pagarCon($tarjeta, 0);
+        $colectivo->pagarCon($tarjeta, 0);
+        $colectivo->pagarCon($tarjeta, 0);
+        $this->assertFalse($colectivo->pagarCon($tarjeta, 0));
+    }
+
+    public function testColectivoInterUrbano() {
+
+        $colectivo = new ColectivoInterUrbano(132);
+        $tarjeta = new tarjeta;
+
+        $tarjeta->cargarSaldo(300);
+        $tarjeta->acreditarSaldo();
+
+        $colectivo->pagarCon($tarjeta, 0);
+        $this->assertEquals($tarjeta->saldo, 0);
+    }
+
     public function testCheckTarjeta() {
+
+        /* En esta función se va a testear el funcionamiento de checkTarjeta, además de comprobar
+        las diferencias entre las distintas franquicias. */
 
         $colectivo = new colectivo(132);
         $tarjeta = new tarjeta;
@@ -32,9 +73,15 @@ class ColectivoTest extends TestCase {
         $this->assertEquals($colectivo->checktarjeta($tarjeta, 43200),1);
 
         // Tarjeta con franquicia parcial:
-        $colectivo->pagarCon($tarjetaMBE, 43200);
         $this->assertEquals($colectivo->checktarjeta($tarjetaMBE, 43200),0.5);
+        $colectivo->pagarCon($tarjetaMBE, 43200);
         $this->assertEquals($tarjetaMBE->saldo, 3907.5);
+        $this->assertEquals($colectivo->checktarjeta($tarjetaMBE, 43201),1);
+        $colectivo->pagarCon($tarjetaMBE, 43201);
+        $this->assertEquals($tarjetaMBE->saldo, 3722.5);
+        $this->assertEquals($colectivo->checktarjeta($tarjetaMBE, 43600),0.5);
+        $colectivo->pagarCon($tarjetaMBE, 43600);
+        $this->assertEquals($tarjetaMBE->saldo, 3630);
 
         // Tarjeta con franquicia completa: 
         $this->assertEquals($colectivo->checktarjeta($tarjetaJubilados, 0),1);
@@ -50,7 +97,7 @@ class ColectivoTest extends TestCase {
 
     public function test5Min() {
 
-        /* En esta función voy a testear el funcionamiento de check5Min */
+        /* En esta función se va a testear el funcionamiento de check5Min. */
 
         $colectivo = new colectivo(132);
         $tarjeta = new TarjetaJubilados;
@@ -66,7 +113,7 @@ class ColectivoTest extends TestCase {
 
     public function testHorario() {
 
-        /* En esta función voy a testear el funcionamiento de checkHorarios */
+        /* En esta función se va a testear el funcionamiento de checkHorarios. */
 
         $colectivo = new colectivo(132);
 
@@ -76,8 +123,8 @@ class ColectivoTest extends TestCase {
 
     public function testViajesMes() {
 
-        /* En esta función voy a testear el funcionamiento de checkViajesMes y que la variable de ViajesMes 
-        se mantenga actualizada al pagar un boleto */
+        /* En esta función se va a testear el funcionamiento de checkViajesMes y que la variable de ViajesMes 
+        se mantenga actualizada al pagar un boleto. */
 
         $colectivo = new colectivo(132);
         $tarjeta = new tarjeta();
@@ -100,8 +147,8 @@ class ColectivoTest extends TestCase {
 
     public function testViajesHoy() {
 
-        /* En esta función voy a testear el funcionamiento de checkViajesHoy y que la variable de ViajesHoy 
-        se mantenga actualizada al pagar un boleto */
+        /* En esta función se va a testear el funcionamiento de checkViajesHoy y que la variable de ViajesHoy 
+        se mantenga actualizada al pagar un boleto. */
 
         $colectivo = new colectivo(132);
         $tarjeta = new TarjetaJubilados;

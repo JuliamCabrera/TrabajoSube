@@ -7,7 +7,7 @@ use TrabajoSube\Tiempo;
 class Colectivo {
 
     public $tarifa = 185;
-    public $saldoNegativo = -326.6;
+    public $saldoMinimo = -326.6;
     public $lineaColectivo;
 
     public function __construct($lineaColectivo) {
@@ -22,20 +22,25 @@ class Colectivo {
         $saldoPrevio = $tarjeta->saldo;
         $totalAbonado = $tarjeta->acreditarsaldo();
         
-        if($tarjeta->saldo >= $monto) {
+        if($this->saldoMinimo <= $tarjeta->saldo - $monto) {
+
             $tarjeta->saldo -= $monto;
             $tarjeta->viajesHoy += 1;
             $tarjeta->viajesMes += 1;
-        }
+            $tarjeta->ultimoViaje = $tiempo;
 
-        if ($saldoPrevio < 0 && $tarjeta->saldo > 0) {
-            $saldoNegativoCancelado = true;
+            if ($saldoPrevio < 0 && $tarjeta->saldo > 0) {
+                $saldoNegativoCancelado = true;
+            }
+            else {
+                $saldoNegativoCancelado = false;
+            }
+
+            return new boleto($monto, $tiempo, $tarjeta->tipoTarjeta, $this->lineaColectivo, $totalAbonado, $tarjeta->saldo, $tarjeta->id, $saldoNegativoCancelado);
         }
         else {
-            $saldoNegativoCancelado = false;
+            return false;
         }
-
-        return new boleto($monto, $tiempo, $tarjeta->tipoTarjeta, $this->lineaColectivo, $totalAbonado, $tarjeta->saldo, $tarjeta->id, $saldoNegativoCancelado);
     }
 
     public function checkTarjeta($tarjeta, $tiempo) {
