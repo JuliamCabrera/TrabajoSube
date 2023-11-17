@@ -6,7 +6,8 @@ class Tarjeta {
     public $id;
     public $saldo;
     public $saldoSinAcreditar;
-    public $ultimoViaje = 0;
+    public $ultimaLinea;
+    public $ultimoViaje;
     public $viajesHoy = 0;
     public $viajesMes = 0;
     public $tipoTarjeta = "Común";
