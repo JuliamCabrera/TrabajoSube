@@ -6,57 +6,42 @@ class Tarjeta {
     public $id;
     public $saldo;
     public $saldoSinAcreditar;
-    public $ultimoViaje;
-    public $viajesHoy;
-    public $viajesMes;
-    protected $tipoTarjeta = "Sin Franquicia";
+    public $ultimoViaje = 0;
+    public $viajesHoy = 0;
+    public $viajesMes = 0;
+    public $tipoTarjeta = "Común";
+    public $tipoFranquicia = "Sin Franquicia";
     public $limiteSaldo = 6600;
     public $cargasAceptadas = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 2000, 2500, 3000, 3500, 4000];
 
-    public function __construct($saldo) {
+    public function __construct() {
         $this->id = uniqid();
-        if (in_array($saldo, $this->cargasAceptadas)) {
-            $this->saldo = $saldoInicial;
-        }
+        $this->saldo = 0;
     }
 
     public function cargarSaldo($monto) {
         if (in_array($monto, $this->cargasAceptadas)) {
-            if(($this->saldo + $monto) <= $this->limiteSaldo) {
-                $this->saldo += $monto;
-                echo "Saldo acreditado correctamente. Nuevo saldo: " . $this->saldo;
-            }
-            else {
-                $this->saldoSinAcreditar = $this->saldo + $monto - $this->limiteSaldo;
-                $this->saldo = $this->limiteSaldo;
-                echo "Saldo acreditado correctamente. Nuevo saldo: " . $this->saldo;
-                echo "Saldo sin acreditar: " . $this->getSaldoSinAcreditar;
-            }
+            $this->saldoSinAcreditar += $monto;
         }
         else {
-         echo "Error al intentar acreditar saldo. Saldo actual: " . $this->saldo;
-         return false;
+            return false;
         }
     }
 
     public function acreditarSaldo(){
+        $totalAbonado;
         if ($this->saldoSinAcreditar > 0) {
             if ($this->saldo + $this->saldoSinAcreditar >= $this->limiteSaldo) {
+                $totalAbonado = $this->limiteSaldo - $this->saldo;
                 $this->saldoSinAcreditar = $this->saldo + $this->saldoSinAcreditar - $this->limiteSaldo;
                 $this->saldo = $this->limiteSaldo;
             }
             else {
-                $this->saldo + $this->saldoSinAcreditar;
+                $totalAbonado = $this->saldoSinAcreditar;
+                $this->saldo += $this->saldoSinAcreditar;
                 $this->saldoSinAcreditar = 0;
             }
         }
+        return $totalAbonado;
     }
-}
-
-class FranquiciaParcial extends Tarjeta {
-    public $tipoTarjeta = "Franquicia Parcial"
-}
-
-class FranquiciaCompleta extends Tarjeta {
-    public $tipoTarjeta = "Franquicia Completa"
 }

@@ -2,8 +2,6 @@
 
 namespace TrabajoSube;
 
-use TrabajoSube\Tiempo;
-
 class Boleto {
     public $monto;
     public $fecha;
@@ -14,9 +12,9 @@ class Boleto {
     public $tarjetaID;
     public $saldoNegativoCancelado;
 
-    public function __construct($monto, $tipoTarjeta, $lineaColectivo, $totalAbonado, $saldo, $tarjetaID, $saldoNegativoCancelado) {
+    public function __construct($monto, $tiempo, $tipoTarjeta, $lineaColectivo, $totalAbonado, $saldo, $tarjetaID, $saldoNegativoCancelado) {
         $this->monto = $monto;
-        $this->fecha = date('l jS \of F Y h:i:s A', time()-10800);
+        $this->fecha = date("d/m/Y H:i a", $tiempo);
         $this->tipoTarjeta = $tipoTarjeta;
         $this->lineaColectivo = $lineaColectivo;
         $this->totalAbonado = $totalAbonado;

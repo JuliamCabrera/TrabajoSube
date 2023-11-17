@@ -6,70 +6,117 @@ use TrabajoSube\Tiempo;
 
 class Colectivo {
 
-    public $tarifa = 120;
-    public $saldoNegativo = -211.84;
+    public $tarifa = 185;
+    public $saldoNegativo = -326.6;
     public $lineaColectivo;
 
     public function __construct($lineaColectivo) {
         $this->lineaColectivo = $lineaColectivo;
     }
 
-    public function pagarCon(Tarjeta $tarjeta) {
+    public function pagarCon($tarjeta, $tiempo) {
 
-        $multiplicadorPrecio = $this->checkTarjeta($tarjeta, $tiempo);
+        $saldoNegativoCancelado;
+        $multiplicadorPrecio = $this->checkTarjeta($tarjeta, $tiempo) * $this->checkViajesMes($tarjeta, $tiempo);
+        $monto = $this->tarifa * $multiplicadorPrecio;
         $saldoPrevio = $tarjeta->saldo;
         $totalAbonado = $tarjeta->acreditarsaldo();
-        $nuevoSaldo = $tarjeta->saldo;
+        
+        if($tarjeta->saldo >= $monto) {
+            $tarjeta->saldo -= $monto;
+            $tarjeta->viajesHoy += 1;
+            $tarjeta->viajesMes += 1;
+        }
+
+        if ($saldoPrevio < 0 && $tarjeta->saldo > 0) {
+            $saldoNegativoCancelado = true;
+        }
+        else {
+            $saldoNegativoCancelado = false;
+        }
+
+        return new boleto($monto, $tiempo, $tarjeta->tipoTarjeta, $this->lineaColectivo, $totalAbonado, $tarjeta->saldo, $tarjeta->id, $saldoNegativoCancelado);
     }
 
-    public checkTarjeta($tarjeta, $tiempo) {
+    public function checkTarjeta($tarjeta, $tiempo) {
 
-        $descuentoFranquicia;
+        $descuentoFranquicia = 1;
+        $viajeDiarioDisponible = $this->checkViajesHoy($tarjeta, $tiempo);
 
-        if($tarjeta->tipoTarjeta == "Sin Franquicia") {
+        if($this->checkHorarios($tiempo)) {
+
+            if($tarjeta->tipoFranquicia == "Franquicia Parcial" && $this->check5Min($tarjeta, $tiempo)) {
+                $descuentoFranquicia = 0.5;
+            }
+            if($tarjeta->tipoFranquicia == "Franquicia Completa" && $viajeDiarioDisponible) {
+                $descuentoFranquicia = 0;
+            }
+        }
+        else {
             $descuentoFranquicia = 1;
-        }
-        if($tarjeta->tipoTarjeta == "Franquicia Parcial") {
-            $descuentoFranquicia = 0.5;
-        }
-        if($tarjeta->tipoTarjeta == "Franquicia Completa") {
-            $descuentoFranquicia = 0;
         }
         return $descuentoFranquicia;
     }
 
-    public checkViajesHoy ($tarjeta, $tiempo) {
+    public function checkHorarios ($tiempo) {
+        $diaSemana = date('N', $tiempo);
+        $hora = date('H', $tiempo);
+        if($diaSemana >= 1 && $diaSemana <= 5 && $hora >= 6 && $hora <= 22) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public function checkViajesHoy ($tarjeta, $tiempo) {
         $ultimoDia = date("j m Y", $tarjeta->ultimoViaje);
         $diaActual = date("j m Y", $tiempo);
         if ($ultimoDia != $diaActual) {
             $tarjeta->viajesHoy = 0;
+            return true;
+        }
+        else if ($tarjeta->viajesHoy < 2) {
+            return true;
+        }
+        else {
+            return false;
         }
     }
 
-    public checkViajesMes ($tarjeta, $tiempo){
+    public function checkViajesMes ($tarjeta, $tiempo){
 
-        $descuentoUsoFrecuente;
+        $descuentoUsoFrecuente =  0;
 
         $ultimoMes = date("m Y", $tarjeta->ultimoViaje);
         $mesActual = date("m Y", $tiempo);
+
         if ($ultimoMes != $mesActual) {
             $tarjeta->viajesMes = 0;
+            return 1;
         }
 
-        if($tarjeta->viajesMes < 29) {
+        if($tarjeta->viajesMes < 30) {
             $descuentoUsoFrecuente = 1;
         }
-        elseif ($tarjeta->viajesMes < 80) {
+
+        if($tarjeta->viajesMes >= 30 && $tarjeta->viajesMes < 80) {
             $descuentoUsoFrecuente = 0.8;
         }
-        else {
+
+        if($tarjeta->viajesMes >= 80) {
             $descuentoUsoFrecuente = 0.75;
         }
-        return $descuentoUsoFrecuente
-    }
-}
 
-class ColectivoInterurbano extends Colectivo
-{
-    public $tarifa = 184;
+        return $descuentoUsoFrecuente;
+    }
+
+    public function check5Min($tarjeta, $tiempo) {
+        if(($tiempo - $tarjeta->ultimoViaje) > 300) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
 }
