@@ -1,5 +1,5 @@
 <?php 
-/*
+
 namespace TrabajoSube;
 
 use PHPUnit\Framework\TestCase;
@@ -9,55 +9,21 @@ use TrabajoSube\Boleto;
 
 class TarjetaTest extends TestCase {
 
-    public function testPagarConSaldoSuficiente() {
-        $tarjeta = new Tarjeta(150);
-        $colectivo = new Colectivo(132);
+    public function testCargar_Acreditar() {
 
-        $boleto = $colectivo->pagarCon($tarjeta);
-        
-        $this->assertEquals(120, $boleto->getMonto());
-        $this->assertEquals(30, $tarjeta->getSaldo());
-        
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $this->assertEquals(-210, $tarjeta->getSaldo());
-        $this->assertEquals(False, $colectivo->pagarCon($tarjeta));
-        
+        $tarjeta = new Tarjeta();
+
+        $this->assertFalse($tarjeta->cargarSaldo(123));
+
+        $tarjeta->cargarSaldo(4000);
+        $this->assertEquals($tarjeta->saldoSinAcreditar, 4000);
+        $tarjeta->acreditarSaldo();
+        $this->assertEquals($tarjeta->saldo, 4000);
+        $this->assertEquals($tarjeta->saldoSinAcreditar, 0);
+        $tarjeta->cargarSaldo(4000);
+        $tarjeta->acreditarSaldo();
+        $this->assertEquals($tarjeta->saldo, 6600);
+        $this->assertEquals($tarjeta->saldoSinAcreditar, 1400);
     }
 
-    public function testSaldoMenor() {
-        $tarjeta = new Tarjeta(150); 
-        $colectivo = new Colectivo(132);
-
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $boleto = $colectivo->pagarCon($tarjeta);
-
-        $this->assertLessThan($tarjeta->getSaldo(), -211.84);
-    }
-
-    public function testDescuentoPlus() {
-        $tarjeta = new Tarjeta(150); 
-        $colectivo = new Colectivo(132);
-
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $this->assertEquals(-90, $tarjeta->getSaldo());
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $this->assertEquals(-210, $tarjeta->getSaldo());
-    }
-
-    public function testFanquiciaCompleta() {
-        $tarjeta = new FranquiciaCompleta(150); 
-        $colectivo = new Colectivo(132);
-
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $boleto = $colectivo->pagarCon($tarjeta);
-        $this->assertEquals(150, $tarjeta->getSaldo());
-    }
 }
-*/

@@ -5,68 +5,123 @@ namespace TrabajoSube;
 use TrabajoSube\Tiempo;
 
 class Colectivo {
-    private $tarifaBasica = 120;
-    private $saldoNegativo = -211.84;
-    private $lineaColectivo;
+
+    public $tarifa = 185;
+    public $saldoMinimo = -326.6;
+    public $lineaColectivo;
 
     public function __construct($lineaColectivo) {
         $this->lineaColectivo = $lineaColectivo;
     }
 
-    public function getLinea() {
-        return $this->LineaColectivo;
-    }
+    public function pagarCon($tarjeta, $tiempo) {
 
-    public function pagarCon(Tarjeta $tarjeta) {
-        $multiplicadorPrecio = $tarjeta->multiplicadorPrecio();
-        $saldoPrevio = $tarjeta->getSaldo;
+        $saldoNegativoCancelado;
+        $multiplicadorPrecio = $this->checkTarjeta($tarjeta, $tiempo) * $this->checkViajesMes($tarjeta, $tiempo);
+        $monto = $this->tarifa * $multiplicadorPrecio;
+        $saldoPrevio = $tarjeta->saldo;
         $totalAbonado = $tarjeta->acreditarsaldo();
-        $nuevoSaldo = $tarjeta->getSaldo;
+        
+        if($this->saldoMinimo <= $tarjeta->saldo - $monto) {
 
-        if(time() - $tarjeta->getUltimoViaje >= 300 && $multiplicadorPrecio == 0.5){
-            if($saldoPrevio < 0 && $nuevoSaldo >= 0) {
+            $tarjeta->saldo -= $monto;
+            $tarjeta->viajesHoy += 1;
+            $tarjeta->viajesMes += 1;
+            $tarjeta->ultimoViaje = $tiempo;
+
+            if ($saldoPrevio < 0 && $tarjeta->saldo > 0) {
                 $saldoNegativoCancelado = true;
             }
             else {
                 $saldoNegativoCancelado = false;
             }
-            if ($tarjeta->getSaldo() >= ($this->saldoNegativo + $this->tarifaBasica * $multiplicadorPrecio)) {
-                $tarjeta->descontarSaldo($this->tarifaBasica * $multiplicadorPrecio);
-                $tarjeta->setUltimoViaje();
-                $tarjeta->sumarViaje();
-                return new Boleto($this->tarifaBasica, time(), $tarjeta->getTipotarjeta, $this->lineaColectivo, $totalAbonado, $tarjeta->getSaldo, $tarjeta->getId, $saldoNegativoCancelado);
-            } else {
-                return false;
-            }
+
+            return new boleto($monto, $tiempo, $tarjeta->tipoTarjeta, $this->lineaColectivo, $totalAbonado, $tarjeta->saldo, $tarjeta->id, $saldoNegativoCancelado);
         }
-        if ($multiplicadorPrecio != 0.5){
-            if($saldoPrevio < 0 && $nuevoSaldo >= 0) {
-                $saldoNegativoCancelado = true;
-            }
-            else {
-                $saldoNegativoCancelado = false;
-            }
-            if ($tarjeta->getSaldo() >= ($this->saldoNegativo + $this->tarifaBasica * $multiplicadorPrecio)) {
-                $tarjeta->descontarSaldo($this->tarifaBasica * $multiplicadorPrecio);
-                $tarjeta->setUltimoViaje();
-                $tarjeta->sumarViaje();
-                return new Boleto($this->tarifaBasica, time(), $tarjeta->getTipotarjeta, $this->lineaColectivo, $totalAbonado, $tarjeta->getSaldo, $tarjeta->getId, $saldoNegativoCancelado);
-            } else {
-                return false;
-            }
+        else {
+            return false;
         }
     }
-}
 
+    public function checkTarjeta($tarjeta, $tiempo) {
 
-class ColectivoInterurbano extends Colectivo
-{
-    // Tarifa para líneas interurbanas
-    private $tarifaInterurbana = 184;
+        $descuentoFranquicia = 1;
+        $viajeDiarioDisponible = $this->checkViajesHoy($tarjeta, $tiempo);
 
-    public function __construct($lineaColectivo)
-    {
-        parent::__construct($lineaColectivo);
-        $this->tarifaBasica = 184;
+        if($this->checkHorarios($tiempo)) {
+
+            if($tarjeta->tipoFranquicia == "Franquicia Parcial" && $this->check5Min($tarjeta, $tiempo)) {
+                $descuentoFranquicia = 0.5;
+            }
+            if($tarjeta->tipoFranquicia == "Franquicia Completa" && $viajeDiarioDisponible) {
+                $descuentoFranquicia = 0;
+            }
+        }
+        else {
+            $descuentoFranquicia = 1;
+        }
+        return $descuentoFranquicia;
+    }
+
+    public function checkHorarios ($tiempo) {
+        $diaSemana = date('N', $tiempo);
+        $hora = date('H', $tiempo);
+        if($diaSemana >= 1 && $diaSemana <= 5 && $hora >= 6 && $hora <= 22) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public function checkViajesHoy ($tarjeta, $tiempo) {
+        $ultimoDia = date("j m Y", $tarjeta->ultimoViaje);
+        $diaActual = date("j m Y", $tiempo);
+        if ($ultimoDia != $diaActual) {
+            $tarjeta->viajesHoy = 0;
+            return true;
+        }
+        else if ($tarjeta->viajesHoy < 2) {
+            return true;
+        }
+        else {
+            return false;
+        }
+    }
+
+    public function checkViajesMes ($tarjeta, $tiempo){
+
+        $descuentoUsoFrecuente =  0;
+
+        $ultimoMes = date("m Y", $tarjeta->ultimoViaje);
+        $mesActual = date("m Y", $tiempo);
+
+        if ($ultimoMes != $mesActual) {
+            $tarjeta->viajesMes = 0;
+            return 1;
+        }
+
+        if($tarjeta->viajesMes < 30) {
+            $descuentoUsoFrecuente = 1;
+        }
+
+        if($tarjeta->viajesMes >= 30 && $tarjeta->viajesMes < 80) {
+            $descuentoUsoFrecuente = 0.8;
+        }
+
+        if($tarjeta->viajesMes >= 80) {
+            $descuentoUsoFrecuente = 0.75;
+        }
+
+        return $descuentoUsoFrecuente;
+    }
+
+    public function check5Min($tarjeta, $tiempo) {
+        if(($tiempo - $tarjeta->ultimoViaje) > 300) {
+            return true;
+        }
+        else {
+            return false;
+        }
     }
 }
