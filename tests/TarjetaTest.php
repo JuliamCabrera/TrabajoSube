@@ -12,7 +12,7 @@ class TarjetaTest extends TestCase {
     public function testCargar_Acreditar() {
 
         $tarjeta = new Tarjeta();
-
+        
         $this->assertFalse($tarjeta->cargarSaldo(123));
 
         $tarjeta->cargarSaldo(4000);

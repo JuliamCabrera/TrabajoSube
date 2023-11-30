@@ -30,7 +30,7 @@ class Tarjeta {
     }
 
     public function acreditarSaldo(){
-        $totalAbonado;
+        //$totalAbonado;
         if ($this->saldoSinAcreditar > 0) {
             if ($this->saldo + $this->saldoSinAcreditar >= $this->limiteSaldo) {
                 $totalAbonado = $this->limiteSaldo - $this->saldo;

@@ -16,7 +16,7 @@ class Colectivo {
 
     public function pagarCon($tarjeta, $tiempo) {
 
-        $saldoNegativoCancelado;
+        //$saldoNegativoCancelado;
         $multiplicadorPrecio = $this->checkTarjeta($tarjeta, $tiempo) * $this->checkViajesMes($tarjeta, $tiempo);
         $monto = $this->tarifa * $multiplicadorPrecio;
         $saldoPrevio = $tarjeta->saldo;
@@ -26,7 +26,7 @@ class Colectivo {
 
             $tarjeta->saldo -= $monto;
             $tarjeta->viajesHoy += 1;
-            $tarjeta->viajesMes += 1;
+            $tarjeta->viajesMes += 1; 
             $tarjeta->ultimoViaje = $tiempo;
             $tarjeta->ultimaLinea = $this->lineaColectivo;
 
@@ -81,8 +81,8 @@ class Colectivo {
 
     public function checkTransbordos ($tarjeta, $tiempo) {
 
-        $horariosTransbordo;
-        $checkHora;
+        //$horariosTransbordo;
+        //$checkHora;
 
         $diaSemana = date('N', $tiempo);
         $hora = date('H', $tiempo);
@@ -156,6 +156,16 @@ class Colectivo {
         }
         else {
             return false;
+        }
+    }
+
+    function usoFrecuente($viajesEnElMes) {
+        if ($viajesEnElMes >= 30 && $viajesEnElMes < 80) {
+            return 0.8; // Descuento del 20%
+        } elseif ($viajesEnElMes >= 80) {
+            return 0.75; // Descuento del 25%
+        } else {
+            return 1; // Sin descuento
         }
     }
 }
